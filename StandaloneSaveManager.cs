@@ -4,17 +4,6 @@ using System.Runtime.Serialization;
 using System.Runtime.Serialization.Formatters.Binary;
 
 /// <summary>
-/// The common persisted data (save/load) interface for various platforms.
-/// </summary>
-public interface IGameSave {
-	T BinaryDeserialize<T>(string filename) where T : new();
-	void BinarySerialize(string filename, object data);
-	void Delete(string filename);
-	bool FileExists(string filename);
-	string GetFullPath(string filename);
-}
-
-/// <summary>
 /// The game save manager for all standalone platforms (Windows, Mac and Linux). Capable of 
 /// binary serialization and deserialization of generic data objects.
 ///
