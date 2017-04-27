@@ -1,0 +1,104 @@
+using System;
+using System.IO;
+using System.Runtime.Serialization;
+using System.Runtime.Serialization.Formatters.Binary;
+using UnityEngine;
+
+/// <summary>
+/// This game save manager is Technical Requirements Checklist (TRC) compliant for PS4 development.
+/// 
+/// Instead of writing to disk files directly (ie: StandaloneSaveManager) we instead serialize
+/// our data to a string and use Unity's PlayerPrefs API. This solution is not specific to PS4 and could
+/// be used in various situations -- it just so happens that Unity's PS4 integration prefers PlayerPrefs usage.
+/// </summary>
+public class PS4SaveManager : MonoBehaviour, IGameSave {
+
+	/// <summary>
+	/// Binary deserialize any generic data object.
+	/// </summary>
+	/// <typeparam name="T">The class type of the deserialized data.</typeparam>
+	/// <param name="filename">The filename of the data to deserialize.</param>
+	/// <returns>The deserialized data if it existed, otherwise a default object.</returns>
+	public T BinaryDeserialize<T>(string filename) where T : new() {
+		T result = new T();
+
+		// Make sure the data exists
+		string dataString = PlayerPrefs.GetString(filename, string.Empty);
+		if (dataString == string.Empty) {
+			return result;
+		}
+
+		// Convert the string into a stream
+		BinaryFormatter bf = new BinaryFormatter();
+		MemoryStream stream = new MemoryStream(Convert.FromBase64String(dataString));
+
+		try {
+			// Deserialize the data
+			result = (T)bf.Deserialize(stream);
+		} catch (SerializationException e) {
+			Debug.Log("BinaryDeserialize failed: " + e.Message);
+			throw;
+		} finally {
+			stream.Close();
+		}
+
+		return result;
+	}
+
+	/// <summary>
+	/// Binary serialize any generic data object.
+	/// </summary>
+	/// <param name="filename">The filename to save this data to.</param>
+	/// <param name="data">The data to serialize.</param>
+	public void BinarySerialize(string filename, object data) {
+		BinaryFormatter bf = new BinaryFormatter();
+		MemoryStream stream = new MemoryStream();
+
+		try {
+			// Serialize the data
+			bf.Serialize(stream, data);
+
+			// Write to player prefs
+			string dataString = Convert.ToBase64String(stream.ToArray());
+			PlayerPrefs.SetString(filename, dataString);
+
+		} catch (SerializationException e) {
+			Debug.Log("BinarySerialize failed: " + e.Message);
+		} finally {
+			stream.Close();
+		}
+	}
+
+	/// <summary>
+	/// Delete a given file.
+	/// </summary>
+	/// <param name="filename">The name of the file to delete.</param>
+	public void Delete(string filename) {
+		PlayerPrefs.SetString(filename, string.Empty);
+	}
+
+	/// <summary>
+	/// Checks if a given file exists.
+	/// </summary>
+	/// <param name="filename">The name of the file to check.</param>
+	/// <returns>True if the file exists, false otherwise.</returns>
+	public bool FileExists(string filename) {
+		return PlayerPrefs.GetString(filename, string.Empty) != string.Empty;
+	}
+
+	/// <summary>
+	/// Gets the full save path, including the filename.
+	/// </summary>
+	/// <param name="filename"></param>
+	/// <returns>The full save path.</returns>
+	public string GetPath(string filename) {
+		return string.Empty;
+	}
+
+	/// <summary>
+	/// Persists all changes to the hardware
+	/// </summary>
+	public void WriteToDisk() {
+		PlayerPrefs.Save();
+	}
+}
