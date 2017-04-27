@@ -37,4 +37,9 @@ public interface IGameSave {
 	/// <param name="filename"></param>
 	/// <returns>The full save path.</returns>
 	string GetFullPath(string filename);
+	
+	/// <summary>
+	/// Write all changes to the disk.
+	/// </summary>
+	public void WriteToDisk();
 }
