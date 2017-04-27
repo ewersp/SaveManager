@@ -95,4 +95,11 @@ public class StandaloneSaveManager : MonoBehaviour, IGameSave {
 	public string GetFullPath(string filename) {
 		return Path.Combine(Application.persistentDataPath, filename);
 	}
+	
+	/// <summary>
+	/// Persists all changes to the hardware
+	/// </summary>
+	public void WriteToDisk() {
+		// No action needed, automatic writes happen in BinarySerialize
+	}
 }
